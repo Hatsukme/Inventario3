@@ -212,14 +212,10 @@ class MainWindow(QMainWindow):
                     config = json.load(f)
                 window_conf = config.get("window", {})
                 if window_conf:
-                    self.resize(
-                        window_conf.get("width", self.width()),
-                        window_conf.get("height", self.height())
-                    )
-                    self.move(
-                        window_conf.get("x", self.x()),
-                        window_conf.get("y", self.y())
-                    )
+                    self.resize(window_conf.get("width", self.width()),
+                                window_conf.get("height", self.height()))
+                    self.move(window_conf.get("x", self.x()),
+                              window_conf.get("y", self.y()))
                 self.tree_colors = config.get("tree", {}).get("colors", {})
                 self.expanded_ids = config.get("tree", {}).get("expanded", [])
                 self.table_config = config.get("table", {})
@@ -230,11 +226,15 @@ class MainWindow(QMainWindow):
                 else:
                     self.apply_light_theme()
 
-                #carregar configuração do banco de dados
+                # Verifica a configuração do banco de dados
                 self.use_last_db_flag = config.get("use_last_db", False)
                 if self.use_last_db_flag and config.get("last_db"):
                     set_database_path(config["last_db"])
-
+                else:
+                    # Se não estiver ativa, define o banco padrão (usando o diretório do executável)
+                    import sys
+                    default_db = os.path.join(os.path.dirname(os.path.abspath(__file__)), "inventario.db")
+                    set_database_path(default_db)
             except Exception as e:
                 QMessageBox.warning(self, "Aviso", f"Não foi possível carregar as configurações: {e}")
 

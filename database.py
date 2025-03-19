@@ -18,7 +18,8 @@ def set_database_path(path):
 
 def obter_conexao():
     try:
-        conn = sqlite3.connect(NOME_DB)
+        conn = sqlite3.connect(NOME_DB, check_same_thread=False)
+        conn.execute("PRAGMA journal_mode=WAL;")
         return conn
     except Exception as e:
         print("Erro ao conectar ao banco:", e)
