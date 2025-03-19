@@ -74,7 +74,7 @@ class ItemDialog(QDialog):
         img_layout.addWidget(btn_select_image)
         form_layout.addRow("Imagem:", img_layout)
 
-        # Se item_id existe, carregamos dados do item
+        # Se item_id existe, carregamos dados do items
         if self.item_id:
             try:
                 with obter_conexao() as conn:
