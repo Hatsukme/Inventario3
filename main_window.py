@@ -25,7 +25,6 @@ from dialogs.item_dialog import ItemDialog
 from dialogs.item_detail_dialog import ItemDetailDialog
 from dialogs.move_item_dialog import MoveItemDialog
 from widgets.quantity_widget import QuantityWidget
-
 from database import set_database_path
 
 class MainWindow(QMainWindow):
