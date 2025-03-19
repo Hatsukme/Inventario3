@@ -2,6 +2,7 @@ import os
 import json
 import csv
 import zipfile
+import sys
 
 from PyQt5.QtWidgets import (QAbstractItemView, QAbstractScrollArea, QHeaderView,
                              QMainWindow, QWidget, QSplitter, QVBoxLayout, QHBoxLayout,
@@ -25,6 +26,7 @@ from dialogs.item_detail_dialog import ItemDetailDialog
 from dialogs.move_item_dialog import MoveItemDialog
 from widgets.quantity_widget import QuantityWidget
 
+from database import set_database_path
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -229,10 +231,16 @@ class MainWindow(QMainWindow):
                 else:
                     self.apply_light_theme()
 
+                #carregar configuração do banco de dados
+                self.use_last_db_flag = config.get("use_last_db", False)
+                if self.use_last_db_flag and config.get("last_db"):
+                    set_database_path(config["last_db"])
+
             except Exception as e:
                 QMessageBox.warning(self, "Aviso", f"Não foi possível carregar as configurações: {e}")
 
     def save_config(self):
+        from database import NOME_DB  # NOME_DB contém o caminho atual do banco
         config = {
             "window": {
                 "width": self.width(),
@@ -245,18 +253,18 @@ class MainWindow(QMainWindow):
                 "colors": getattr(self, "tree_colors", {})
             },
             "table": {
-                "column_widths": [
-                    self.table_items.horizontalHeader().sectionSize(i)
-                    for i in range(self.table_items.columnCount())
-                ],
-                "column_order": [
-                    self.table_items.horizontalHeader().logicalIndex(i)
-                    for i in range(self.table_items.columnCount())
-                ]
+                "column_widths": [self.table_items.horizontalHeader().sectionSize(i)
+                                  for i in range(self.table_items.columnCount())],
+                "column_order": [self.table_items.horizontalHeader().logicalIndex(i)
+                                 for i in range(self.table_items.columnCount())]
             },
-            "theme": getattr(self, "tema_atual", "claro")
+            "theme": getattr(self, "tema_atual", "claro"),
+            "use_last_db": self.action_use_last_db.isChecked()
         }
-
+        if self.action_use_last_db.isChecked():
+            config["last_db"] = NOME_DB
+        else:
+            config["last_db"] = ""
         try:
             with open(get_config_path(), "w") as f:
                 json.dump(config, f, indent=4)
@@ -310,6 +318,64 @@ class MainWindow(QMainWindow):
         acao_trocar_tema = QAction("Trocar Tema (Escuro/Claro)", self)
         acao_trocar_tema.triggered.connect(self.trocar_tema)
         menu_config.addAction(acao_trocar_tema)
+
+        # Ação para conectar em outro banco:
+        action_conectar_db = QAction("Conectar em outro banco", self)
+        action_conectar_db.triggered.connect(self.selecionar_banco)
+        menu_config.addAction(action_conectar_db)
+
+        # Ação checkable para usar o último banco conectado:
+        self.action_use_last_db = QAction("Usar último banco conectado", self)
+        self.action_use_last_db.setCheckable(True)
+        # Inicialize conforme configuração carregada
+        self.action_use_last_db.setChecked(getattr(self, "use_last_db_flag", False))
+        self.action_use_last_db.toggled.connect(self.toggle_use_last_db)
+        menu_config.addAction(self.action_use_last_db)
+
+    def selecionar_banco(self):
+        caminho, _ = QFileDialog.getOpenFileName(self, "Selecionar Banco de Dados", "", "SQLite DB (*.db)")
+        if caminho:
+            from database import set_database_path, criar_pasta_imagens
+            set_database_path(caminho)
+            criar_pasta_imagens()  # Cria o diretório de imagens para o novo banco, se necessário
+
+            # Atualize a configuração com o último banco conectado
+            config = {}
+            config_path = get_config_path()
+            if os.path.exists(config_path):
+                with open(config_path, "r") as f:
+                    config = json.load(f)
+            config["last_db"] = caminho
+            if self.action_use_last_db.isChecked():
+                config["use_last_db"] = True
+            with open(config_path, "w") as f:
+                json.dump(config, f, indent=4)
+
+            # Recarrega a árvore ou outras partes que dependem dos dados do banco
+            self.carregar_arvore()
+
+    def toggle_use_last_db(self, checked):
+        import sys
+        # Atualize a configuração
+        config = {}
+        config_path = get_config_path()
+        if os.path.exists(config_path):
+            with open(config_path, "r") as f:
+                config = json.load(f)
+        config["use_last_db"] = checked
+        with open(config_path, "w") as f:
+            json.dump(config, f, indent=4)
+        self.use_last_db_flag = checked
+
+        try:
+            if not checked:
+                # Usar sys.executable para obter o diretório do executável
+                default_db = os.path.join(os.path.dirname(sys.executable), "inventario.db")
+                from database import set_database_path
+                set_database_path(default_db)
+                self.carregar_arvore()
+        except Exception as e:
+            QMessageBox.critical(self, "Erro", f"Erro ao definir o banco padrão: {e}")
 
     # --------------------------------------------------
     # Árvores e diretórios

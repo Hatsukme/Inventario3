@@ -5,12 +5,18 @@ import datetime
 import zipfile
 import json
 
-# Constantes
-NOME_DB = "inventario.db"
-IMAGES_FOLDER = "imagens_originais"
+# Caminho padrão: o banco de dados na mesma pasta do executável
+NOME_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "inventario.db")
+# Diretório padrão de imagens, relativo ao banco
+IMAGES_FOLDER = os.path.join(os.path.dirname(NOME_DB), "imagens_originais")
+
+def set_database_path(path):
+    """Define o caminho do banco e atualiza o diretório de imagens correspondente."""
+    global NOME_DB, IMAGES_FOLDER
+    NOME_DB = path
+    IMAGES_FOLDER = os.path.join(os.path.dirname(path), "imagens_originais")
 
 def obter_conexao():
-    """Retorna uma conexão com o banco de dados SQLite."""
     try:
         conn = sqlite3.connect(NOME_DB)
         return conn
@@ -19,7 +25,6 @@ def obter_conexao():
         raise
 
 def verificar_ou_criar_db():
-    """Verifica se o DB existe; se não, cria o banco e as tabelas necessárias."""
     novo_db = not os.path.exists(NOME_DB)
     try:
         with obter_conexao() as conn:
@@ -29,6 +34,7 @@ def verificar_ou_criar_db():
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT NOT NULL,
                     parent_id INTEGER,
+                    note TEXT,
                     FOREIGN KEY(parent_id) REFERENCES directories(id)
                 )
             """)
@@ -41,15 +47,12 @@ def verificar_ou_criar_db():
                     description TEXT,
                     image_path TEXT,
                     directory_id INTEGER,
+                    note TEXT,
                     FOREIGN KEY(directory_id) REFERENCES directories(id)
                 )
             """)
-            # Se for um banco novo, insere um diretório inicial
             if novo_db:
-                cursor.execute(
-                    "INSERT INTO directories (name, parent_id) VALUES (?, ?)",
-                    ("Equipamentos", None)
-                )
+                cursor.execute("INSERT INTO directories (name, parent_id) VALUES (?, ?)", ("Equipamentos", None))
             conn.commit()
     except Exception as e:
         print("Erro ao criar/verificar banco de dados:", e)
