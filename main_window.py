@@ -212,10 +212,14 @@ class MainWindow(QMainWindow):
                     config = json.load(f)
                 window_conf = config.get("window", {})
                 if window_conf:
-                    self.resize(window_conf.get("width", self.width()),
-                                window_conf.get("height", self.height()))
-                    self.move(window_conf.get("x", self.x()),
-                              window_conf.get("y", self.y()))
+                    self.resize(
+                        window_conf.get("width", self.width()),
+                        window_conf.get("height", self.height())
+                    )
+                    self.move(
+                        window_conf.get("x", self.x()),
+                        window_conf.get("y", self.y())
+                    )
                 self.tree_colors = config.get("tree", {}).get("colors", {})
                 self.expanded_ids = config.get("tree", {}).get("expanded", [])
                 self.table_config = config.get("table", {})
@@ -226,17 +230,19 @@ class MainWindow(QMainWindow):
                 else:
                     self.apply_light_theme()
 
-                # Verifica a configuração do banco de dados
-                self.use_last_db_flag = config.get("use_last_db", False)
-                if self.use_last_db_flag and config.get("last_db"):
-                    set_database_path(config["last_db"])
-                else:
-                    # Se não estiver ativa, define o banco padrão (usando o diretório do executável)
-                    import sys
-                    default_db = os.path.join(os.path.dirname(sys.executable), "inventario.db")
-                    set_database_path(default_db)
             except Exception as e:
                 QMessageBox.warning(self, "Aviso", f"Não foi possível carregar as configurações: {e}")
+
+        # Define sempre o banco padrão no diretório correto:
+        import sys
+        if getattr(sys, "frozen", False):
+            # Quando empacotado, use o diretório do executável
+            default_db = os.path.join(os.path.dirname(sys.executable), "inventario.db")
+        else:
+            # Em desenvolvimento, use o diretório do script
+            default_db = os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), "inventario.db")
+        set_database_path(default_db)
+        print("Caminho do banco de dados definido:", default_db)
 
     def save_config(self):
         from database import NOME_DB  # NOME_DB contém o caminho atual do banco
@@ -324,12 +330,12 @@ class MainWindow(QMainWindow):
         menu_config.addAction(action_conectar_db)
 
         # Ação checkable para usar o último banco conectado:
-        self.action_use_last_db = QAction("Usar último banco conectado", self)
-        self.action_use_last_db.setCheckable(True)
+        #self.action_use_last_db = QAction("Usar último banco conectado", self)
+        #self.action_use_last_db.setCheckable(True)
         # Inicialize conforme configuração carregada
-        self.action_use_last_db.setChecked(getattr(self, "use_last_db_flag", False))
-        self.action_use_last_db.toggled.connect(self.toggle_use_last_db)
-        menu_config.addAction(self.action_use_last_db)
+        #self.action_use_last_db.setChecked(getattr(self, "use_last_db_flag", False))
+        #self.action_use_last_db.toggled.connect(self.toggle_use_last_db)
+        #menu_config.addAction(self.action_use_last_db)
 
     def selecionar_banco(self):
         caminho, _ = QFileDialog.getOpenFileName(self, "Selecionar Banco de Dados", "", "SQLite DB (*.db)")
