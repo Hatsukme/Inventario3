@@ -236,10 +236,8 @@ class MainWindow(QMainWindow):
         # Define sempre o banco padrão no diretório correto:
         import sys
         if getattr(sys, "frozen", False):
-            # Quando empacotado, use o diretório do executável
             default_db = os.path.join(os.path.dirname(sys.executable), "inventario.db")
         else:
-            # Em desenvolvimento, use o diretório do script
             default_db = os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), "inventario.db")
         set_database_path(default_db)
         print("Caminho do banco de dados definido:", default_db)
@@ -263,13 +261,8 @@ class MainWindow(QMainWindow):
                 "column_order": [self.table_items.horizontalHeader().logicalIndex(i)
                                  for i in range(self.table_items.columnCount())]
             },
-            "theme": getattr(self, "tema_atual", "claro"),
-            "use_last_db": self.action_use_last_db.isChecked()
+            "theme": getattr(self, "tema_atual", "claro")
         }
-        if self.action_use_last_db.isChecked():
-            config["last_db"] = NOME_DB
-        else:
-            config["last_db"] = ""
         try:
             with open(get_config_path(), "w") as f:
                 json.dump(config, f, indent=4)
@@ -329,58 +322,14 @@ class MainWindow(QMainWindow):
         action_conectar_db.triggered.connect(self.selecionar_banco)
         menu_config.addAction(action_conectar_db)
 
-        # Ação checkable para usar o último banco conectado:
-        #self.action_use_last_db = QAction("Usar último banco conectado", self)
-        #self.action_use_last_db.setCheckable(True)
-        # Inicialize conforme configuração carregada
-        #self.action_use_last_db.setChecked(getattr(self, "use_last_db_flag", False))
-        #self.action_use_last_db.toggled.connect(self.toggle_use_last_db)
-        #menu_config.addAction(self.action_use_last_db)
-
     def selecionar_banco(self):
         caminho, _ = QFileDialog.getOpenFileName(self, "Selecionar Banco de Dados", "", "SQLite DB (*.db)")
         if caminho:
             from database import set_database_path, criar_pasta_imagens
             set_database_path(caminho)
             criar_pasta_imagens()  # Cria o diretório de imagens para o novo banco, se necessário
-
-            # Atualize a configuração com o último banco conectado
-            config = {}
-            config_path = get_config_path()
-            if os.path.exists(config_path):
-                with open(config_path, "r") as f:
-                    config = json.load(f)
-            config["last_db"] = caminho
-            if self.action_use_last_db.isChecked():
-                config["use_last_db"] = True
-            with open(config_path, "w") as f:
-                json.dump(config, f, indent=4)
-
-            # Recarrega a árvore ou outras partes que dependem dos dados do banco
+            print("Banco selecionado:", caminho)
             self.carregar_arvore()
-
-    def toggle_use_last_db(self, checked):
-        import sys
-        # Atualize a configuração
-        config = {}
-        config_path = get_config_path()
-        if os.path.exists(config_path):
-            with open(config_path, "r") as f:
-                config = json.load(f)
-        config["use_last_db"] = checked
-        with open(config_path, "w") as f:
-            json.dump(config, f, indent=4)
-        self.use_last_db_flag = checked
-
-        try:
-            if not checked:
-                # Usar sys.executable para obter o diretório do executável
-                default_db = os.path.join(os.path.dirname(sys.executable), "inventario.db")
-                from database import set_database_path
-                set_database_path(default_db)
-                self.carregar_arvore()
-        except Exception as e:
-            QMessageBox.critical(self, "Erro", f"Erro ao definir o banco padrão: {e}")
 
     # --------------------------------------------------
     # Árvores e diretórios
