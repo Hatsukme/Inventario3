@@ -233,7 +233,7 @@ class MainWindow(QMainWindow):
                 else:
                     # Se não estiver ativa, define o banco padrão (usando o diretório do executável)
                     import sys
-                    default_db = os.path.join(os.path.dirname(os.path.abspath(__file__)), "inventario.db")
+                    default_db = os.path.join(os.path.dirname(sys.executable), "inventario.db")
                     set_database_path(default_db)
             except Exception as e:
                 QMessageBox.warning(self, "Aviso", f"Não foi possível carregar as configurações: {e}")
