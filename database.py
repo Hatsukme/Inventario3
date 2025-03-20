@@ -16,14 +16,27 @@ def set_database_path(path):
     NOME_DB = path
     IMAGES_FOLDER = os.path.join(os.path.dirname(path), "imagens_originais")
 
+MODO_CONEXAO = "rw"
+
 def obter_conexao():
+    global MODO_CONEXAO
     try:
-        conn = sqlite3.connect(NOME_DB, check_same_thread=False)
+        # Tenta abrir em modo leitura-escrita
+        conn = sqlite3.connect(NOME_DB, timeout=5, check_same_thread=False)
         conn.execute("PRAGMA journal_mode=WAL;")
+        conn.execute("BEGIN IMMEDIATE;")
+        conn.commit()
+        MODO_CONEXAO = "rw"
+        print("Conexão em modo leitura-escrita estabelecida.")
         return conn
-    except Exception as e:
-        print("Erro ao conectar ao banco:", e)
-        raise
+    except sqlite3.OperationalError as e:
+        if "database is locked" in str(e):
+            print("Banco de dados bloqueado, abrindo em modo somente leitura.")
+            conn = sqlite3.connect(f"file:{NOME_DB}?mode=ro", uri=True, check_same_thread=False)
+            MODO_CONEXAO = "ro"
+            return conn
+        else:
+            raise
 
 def verificar_ou_criar_db():
     novo_db = not os.path.exists(NOME_DB)
