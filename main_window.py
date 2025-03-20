@@ -233,15 +233,6 @@ class MainWindow(QMainWindow):
             except Exception as e:
                 QMessageBox.warning(self, "Aviso", f"Não foi possível carregar as configurações: {e}")
 
-        # Define sempre o banco padrão no diretório correto:
-        import sys
-        if getattr(sys, "frozen", False):
-            default_db = os.path.join(os.path.dirname(sys.executable), "inventario.db")
-        else:
-            default_db = os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), "inventario.db")
-        set_database_path(default_db)
-        print("Caminho do banco de dados definido:", default_db)
-
     def save_config(self):
         from database import NOME_DB  # NOME_DB contém o caminho atual do banco
         config = {
