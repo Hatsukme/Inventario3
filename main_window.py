@@ -264,6 +264,7 @@ class MainWindow(QMainWindow):
         self.save_config()
         super().closeEvent(event)
 
+
     # --------------------------------------------------
     # Menu superior
     # --------------------------------------------------
