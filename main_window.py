@@ -1100,7 +1100,7 @@ class MainWindow(QMainWindow):
 
     def backup_banco(self):
         try:
-            nome_zip = f"backup_banco_{os.path.splitext(NOME_DB)[0]}.zip"
+            nome_zip = f"backup_banco_{os.path.splitext(os.path.basename(NOME_DB))[0]}.zip"
             with zipfile.ZipFile(nome_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
                 zipf.write(NOME_DB, os.path.basename(NOME_DB))
             QMessageBox.information(self, "Backup", f"Backup do banco criado: {nome_zip}")
@@ -1109,7 +1109,7 @@ class MainWindow(QMainWindow):
 
     def backup_imagens(self):
         try:
-            nome_zip = f"backup_imagens_{IMAGES_FOLDER}.zip"
+            nome_zip = f"backup_imagens_{os.path.basename(IMAGES_FOLDER)}.zip"
             with zipfile.ZipFile(nome_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
                 for raiz, dirs, arquivos in os.walk(IMAGES_FOLDER):
                     for arq in arquivos:
