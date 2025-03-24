@@ -42,14 +42,14 @@ class DirectoryDialog(QDialog):
         btn_layout = QHBoxLayout()
         layout.addLayout(btn_layout)
         btn_ok = QPushButton("OK")
-        btn_ok.clicked.connect(self.salvar)
+        btn_ok.clicked.connect(self.save)
         btn_layout.addWidget(btn_ok)
 
         btn_cancel = QPushButton("Cancelar")
         btn_cancel.clicked.connect(self.reject)
         btn_layout.addWidget(btn_cancel)
 
-    def salvar(self):
+    def save(self):
         nome = self.name_edit.text().strip()
         if not nome:
             QMessageBox.warning(self, "Atenção", "Nome do diretório não pode ser vazio.")

@@ -30,11 +30,11 @@ class ImageEnlargeDialog(QDialog):
         self.scroll_area.setWidget(self.label)
 
         if self.image_path and os.path.exists(self.image_path):
-            self.atualizarImagem()
+            self.refresh_images()
 
         self.scroll_area.viewport().installEventFilter(self)
 
-    def atualizarImagem(self):
+    def refresh_images(self):
         if self.image_path and os.path.exists(self.image_path):
             pixmap = QPixmap(self.image_path)
             new_width = max(1, int(pixmap.width() * self.scaleFactor))
@@ -55,6 +55,6 @@ class ImageEnlargeDialog(QDialog):
                 new_scale = min(max(new_scale, self.zoom_min), self.zoom_max)
                 if new_scale != self.scaleFactor:
                     self.scaleFactor = new_scale
-                    self.atualizarImagem()
+                    self.refresh_images()
                 return True
         return super().eventFilter(source, event)

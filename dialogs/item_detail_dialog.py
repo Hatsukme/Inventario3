@@ -38,7 +38,7 @@ class ItemDetailDialog(QDialog):
         layout.addWidget(self.img_label)
 
         btn_enlarge = QPushButton("Ampliar Imagem")
-        btn_enlarge.clicked.connect(self.ampliar_imagem)
+        btn_enlarge.clicked.connect(self.amplify_image)
         layout.addWidget(btn_enlarge)
 
         self.image_path = None
@@ -72,7 +72,7 @@ class ItemDetailDialog(QDialog):
         except Exception as e:
             QMessageBox.critical(self, "Erro", f"Erro ao carregar detalhes do item: {e}")
 
-    def ampliar_imagem(self):
+    def amplify_image(self):
         if not self.image_path or not os.path.exists(self.image_path):
             QMessageBox.information(self, "Informação", "Não há imagem para ampliar.")
             return

@@ -2,7 +2,7 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QHBoxLayout
 
 
-class atalhosDialog(QDialog):
+class dialog_shortcuts(QDialog):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Atalhos")

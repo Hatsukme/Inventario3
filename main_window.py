@@ -25,8 +25,8 @@ from dialogs.item_dialog import ItemDialog
 from dialogs.item_detail_dialog import ItemDetailDialog
 from dialogs.move_item_dialog import MoveItemDialog
 from widgets.quantity_widget import QuantityWidget
-from dialogs.atalhos_dialog import atalhosDialog
-from dialogs.sobre_dialog import sobreDialog
+from dialogs.atalhos_dialog import dialog_shortcuts
+from dialogs.sobre_dialog import dialog_about
 from atalhos import setup_shortcuts
 
 class MainWindow(QMainWindow):
@@ -39,7 +39,7 @@ class MainWindow(QMainWindow):
         criar_pasta_imagens()
 
         # Carrega as configurações (tema, posição da janela etc.)
-        self.load_config()
+        self.load_configs()
 
         # Cria a barra de menu
         self.setup_menu()
@@ -59,13 +59,13 @@ class MainWindow(QMainWindow):
         self.search_line_edit.setPlaceholderText(
             "Pesquisar por título, descrição, responsável ou diretório..."
         )
-        self.search_line_edit.returnPressed.connect(self.pesquisar_itens)
+        self.search_line_edit.returnPressed.connect(self.search_item)
 
         btn_search = QPushButton("Pesquisar")
-        btn_search.clicked.connect(self.pesquisar_itens)
+        btn_search.clicked.connect(self.search_item)
 
         btn_clear = QPushButton("Limpar Pesquisa")
-        btn_clear.clicked.connect(self.limpar_pesquisa)
+        btn_clear.clicked.connect(self.clean_search)
 
         pesquisa_layout.addWidget(self.search_line_edit)
         pesquisa_layout.addWidget(btn_search)
@@ -117,7 +117,7 @@ class MainWindow(QMainWindow):
         btn_update = QToolButton()
         btn_update.setIcon(self.style().standardIcon(QStyle.SP_BrowserReload))
         btn_update.setToolTip("Atualizar")
-        btn_update.clicked.connect(self.atualizar_diretorio_e_tabela)
+        btn_update.clicked.connect(self.refresh_directories_table)
         control_layout.addWidget(btn_update)
 
         tree_layout.addWidget(control_frame)
@@ -125,7 +125,7 @@ class MainWindow(QMainWindow):
         # Campo de pesquisa de diretórios
         self.dir_search_line_edit = QLineEdit()
         self.dir_search_line_edit.setPlaceholderText("Pesquisar Diretório...")
-        self.dir_search_line_edit.returnPressed.connect(self.pesquisar_diretorio)
+        self.dir_search_line_edit.returnPressed.connect(self.search_directories)
         tree_layout.addWidget(self.dir_search_line_edit)
 
         tree_layout.addWidget(self.tree_directories)
@@ -156,7 +156,7 @@ class MainWindow(QMainWindow):
 
         # Botão para adicionar item
         self.btn_add_item = QPushButton("Adicionar Item")
-        self.btn_add_item.clicked.connect(self.adicionar_item)
+        self.btn_add_item.clicked.connect(self.add_item)
         self.btn_add_item.setFixedSize(100, 25)
         self.btn_add_item.setStyleSheet("""
             QPushButton {
@@ -176,7 +176,7 @@ class MainWindow(QMainWindow):
         main_layout.addLayout(button_layout)
 
         # Carrega a árvore e restaura configurações da tabela
-        self.carregar_arvore()
+        self.load_tree()
         self.restore_table_config()
 
         # Inicializa a pilha de undo (limite de 5 operações)
@@ -201,22 +201,22 @@ class MainWindow(QMainWindow):
             self.table_items.sortItems(logical_index, Qt.DescendingOrder)
 
     # ------------------------- Métodos de Atalhos -------------------------
-    def exibir_atalhos(self):
-        dialog = atalhosDialog()
+    def show_shortcuts(self):
+        dialog = dialog_shortcuts()
         dialog.exec_()
 
-    def exibir_sobre(self):
-        dialog = sobreDialog()
+    def show_about(self):
+        dialog = dialog_about()
         dialog.exec_()
 
-    def posicionar_ultimo_item(self):
+    def set_last_item(self):
         self.table_items.clearSelection()
         row_count = self.table_items.rowCount()
         if row_count > 0:
             self.table_items.selectRow(row_count - 1)
             self.table_items.scrollToItem(self.table_items.item(row_count - 1, 0))
 
-    def posicionar_primeiro_item(self):
+    def set_first_item(self):
         self.table_items.clearSelection()
         if self.table_items.rowCount() > 0:
             self.table_items.selectRow(0)
@@ -258,19 +258,19 @@ class MainWindow(QMainWindow):
             except Exception as e:
                 QMessageBox.critical(self, "Erro", f"Erro ao desfazer operação: {e}")
 
-        self.atualizar_tabela()
+        self.refresh_table()
 
     # ------------------------- Atualização -------------------------
-    def atualizar_tabela(self):
+    def refresh_table(self):
         directory_id = self.get_selected_directory_id()
         if directory_id:
-            self.carregar_itens_do_diretorio(directory_id)
+            self.load_items_from_directories(directory_id)
         else:
             self.table_items.setRowCount(0)
 
-    def atualizar_diretorio_e_tabela(self):
+    def refresh_directories_table(self):
         selected_directory_id = self.get_selected_directory_id()
-        self.carregar_arvore()
+        self.load_tree()
         if selected_directory_id:
             def buscar_item_por_id(item, dir_id):
                 if item.data(0, Qt.UserRole) == dir_id:
@@ -291,10 +291,10 @@ class MainWindow(QMainWindow):
             if found_item:
                 self.tree_directories.setCurrentItem(found_item)
 
-        self.atualizar_tabela()
+        self.refresh_table()
 
     # ------------------------- Métodos de Configuração da Interface -------------------------
-    def load_config(self):
+    def load_configs(self):
         config_path = get_config_path()
         if os.path.exists(config_path):
             try:
@@ -319,7 +319,7 @@ class MainWindow(QMainWindow):
             except Exception as e:
                 QMessageBox.warning(self, "Aviso", f"Não foi possível carregar as configurações: {e}")
 
-    def save_config(self):
+    def save_configs(self):
         config = {
             "window": {
                 "width": self.width(),
@@ -346,7 +346,7 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Aviso", f"Não foi possível salvar as configurações: {e}")
 
     def closeEvent(self, event):
-        self.save_config()
+        self.save_configs()
         super().closeEvent(event)
 
     # ------------------------- Menu Superior -------------------------
@@ -356,21 +356,21 @@ class MainWindow(QMainWindow):
         # Menu CSV
         menu_csv = menubar.addMenu("CSV")
         acao_exportar_csv = QAction("Exportar Banco para CSV", self)
-        acao_exportar_csv.triggered.connect(self.exportar_csv)
+        acao_exportar_csv.triggered.connect(self.export_csv)
         menu_csv.addAction(acao_exportar_csv)
 
         acao_importar_csv = QAction("Importar Banco de CSV", self)
-        acao_importar_csv.triggered.connect(self.importar_csv)
+        acao_importar_csv.triggered.connect(self.import_csv)
         menu_csv.addAction(acao_importar_csv)
 
         # Menu Backup
         menu_backup = menubar.addMenu("Backup")
         acao_backup_banco = QAction("Backup do Banco", self)
-        acao_backup_banco.triggered.connect(self.backup_banco)
+        acao_backup_banco.triggered.connect(self.backup_db)
         menu_backup.addAction(acao_backup_banco)
 
         acao_backup_imagens = QAction("Backup das Imagens", self)
-        acao_backup_imagens.triggered.connect(self.backup_imagens)
+        acao_backup_imagens.triggered.connect(self.backup_images)
         menu_backup.addAction(acao_backup_imagens)
 
         acao_backup_configs = QAction("Backup das Configs", self)
@@ -380,37 +380,37 @@ class MainWindow(QMainWindow):
         # Menu Configurações
         menu_config = menubar.addMenu("Configurações")
         acao_importar_config = QAction("Importar Config", self)
-        acao_importar_config.triggered.connect(self.importar_config)
+        acao_importar_config.triggered.connect(self.import_configs)
         menu_config.addAction(acao_importar_config)
 
         acao_trocar_tema = QAction("Trocar Tema (Escuro/Claro)", self)
-        acao_trocar_tema.triggered.connect(self.trocar_tema)
+        acao_trocar_tema.triggered.connect(self.change_theme)
         menu_config.addAction(acao_trocar_tema)
 
         action_conectar_db = QAction("Conectar em outro banco", self)
-        action_conectar_db.triggered.connect(self.selecionar_banco)
+        action_conectar_db.triggered.connect(self.select_db)
         menu_config.addAction(action_conectar_db)
 
         # Menu Ajuda
         menu_ajuda = menubar.addMenu("Ajuda")
         acao_atalhos = QAction("Atalhos", self)
-        acao_atalhos.triggered.connect(self.exibir_atalhos)
+        acao_atalhos.triggered.connect(self.show_shortcuts)
         menu_ajuda.addAction(acao_atalhos)
 
         acao_sobre = QAction("Sobre", self)
-        acao_sobre.triggered.connect(self.exibir_sobre)
+        acao_sobre.triggered.connect(self.show_about)
         menu_ajuda.addAction(acao_sobre)
 
-    def selecionar_banco(self):
+    def select_db(self):
         caminho, _ = QFileDialog.getOpenFileName(self, "Selecionar Banco de Dados", "", "SQLite DB (*.db)")
         if caminho:
             set_database_path(caminho)
             criar_pasta_imagens()
             print("Banco selecionado:", caminho)
-            self.carregar_arvore()
+            self.load_tree()
 
     # ------------------------- Árvores e Diretórios -------------------------
-    def carregar_arvore(self):
+    def load_tree(self):
         self.tree_directories.clear()
         try:
             with obter_conexao() as conn:
@@ -451,7 +451,7 @@ class MainWindow(QMainWindow):
 
     def on_directory_selected(self, item, column):
         directory_id = item.data(0, Qt.UserRole)
-        self.carregar_itens_do_diretorio(directory_id)
+        self.load_items_from_directories(directory_id)
 
     def get_selected_directory_id(self):
         item = self.tree_directories.currentItem()
@@ -508,7 +508,7 @@ class MainWindow(QMainWindow):
                 parent.setExpanded(True)
                 parent = parent.parent()
 
-    def pesquisar_diretorio(self):
+    def search_directories(self):
         texto = self.dir_search_line_edit.text().strip().lower()
         if not texto:
             return
@@ -532,41 +532,41 @@ class MainWindow(QMainWindow):
         menu = QMenu(self)
         if item:
             action_add_dir = QAction("Adicionar Subdiretório", self)
-            action_add_dir.triggered.connect(self.adicionar_subdiretorio)
+            action_add_dir.triggered.connect(self.add_subdirectory)
             menu.addAction(action_add_dir)
             action_edit_dir = QAction("Editar Diretório", self)
-            action_edit_dir.triggered.connect(self.editar_diretorio)
+            action_edit_dir.triggered.connect(self.edit_directory)
             menu.addAction(action_edit_dir)
             action_move_dir = QAction("Mover Diretório", self)
-            action_move_dir.triggered.connect(self.mover_diretorio)
+            action_move_dir.triggered.connect(self.move_directory)
             menu.addAction(action_move_dir)
             action_del_dir = QAction("Excluir Diretório", self)
-            action_del_dir.triggered.connect(self.excluir_diretorio)
+            action_del_dir.triggered.connect(self.exclude_directory)
             menu.addAction(action_del_dir)
             action_visualizar = QAction("Visualizar Itens (recursivo)", self)
-            action_visualizar.triggered.connect(self.visualizar_itens)
+            action_visualizar.triggered.connect(self.show_items)
             menu.addAction(action_visualizar)
             action_set_color = QAction("Definir Cor", self)
-            action_set_color.triggered.connect(lambda: self.definir_cor(item))
+            action_set_color.triggered.connect(lambda: self.define_collor(item))
             menu.addAction(action_set_color)
             dir_id = item.data(0, Qt.UserRole)
             if hasattr(self, "tree_colors") and str(dir_id) in self.tree_colors:
                 action_remove_color = QAction("Remover Cor", self)
-                action_remove_color.triggered.connect(lambda: self.remover_cor(item))
+                action_remove_color.triggered.connect(lambda: self.remove_collor(item))
                 menu.addAction(action_remove_color)
         else:
             action_add_root = QAction("Adicionar Diretório Raiz", self)
-            action_add_root.triggered.connect(self.adicionar_diretorio_raiz)
+            action_add_root.triggered.connect(self.add_root_directory)
             menu.addAction(action_add_root)
         menu.exec_(self.tree_directories.mapToGlobal(pos))
 
-    def adicionar_diretorio_raiz(self):
+    def add_root_directory(self):
         dialog = DirectoryDialog(self, parent_directory_id=None)
         if dialog.exec_() == QDialog.Accepted:
             self.expanded_ids = self.get_expanded_items()
-            self.carregar_arvore()
+            self.load_tree()
 
-    def adicionar_subdiretorio(self):
+    def add_subdirectory(self):
         parent_id = self.get_selected_directory_id()
         if not parent_id:
             QMessageBox.warning(self, "Atenção", "Selecione um diretório para adicionar subdiretório.")
@@ -574,18 +574,18 @@ class MainWindow(QMainWindow):
         dialog = DirectoryDialog(self, parent_directory_id=parent_id)
         if dialog.exec_() == QDialog.Accepted:
             self.expanded_ids = self.get_expanded_items()
-            self.carregar_arvore()
+            self.load_tree()
 
-    def editar_diretorio(self):
+    def edit_directory(self):
         directory_id = self.get_selected_directory_id()
         if not directory_id:
             QMessageBox.warning(self, "Atenção", "Selecione um diretório para editar.")
             return
         dialog = DirectoryDialog(self, directory_id=directory_id)
         if dialog.exec_() == QDialog.Accepted:
-            self.carregar_arvore()
+            self.load_tree()
 
-    def mover_diretorio(self):
+    def move_directory(self):
         directory_id = self.get_selected_directory_id()
         if not directory_id:
             QMessageBox.warning(self, "Atenção", "Selecione um diretório para mover.")
@@ -617,11 +617,11 @@ class MainWindow(QMainWindow):
                     cursor = conn.cursor()
                     cursor.execute("UPDATE directories SET parent_id = ? WHERE id = ?", (new_parent_id, directory_id))
                     conn.commit()
-                self.carregar_arvore()
+                self.load_tree()
         except Exception as e:
             QMessageBox.critical(self, "Erro", f"Erro ao mover diretório: {e}")
 
-    def excluir_diretorio(self):
+    def exclude_directory(self):
         directory_id = self.get_selected_directory_id()
         if not directory_id:
             QMessageBox.warning(self, "Atenção", "Selecione um diretório para excluir.")
@@ -630,25 +630,25 @@ class MainWindow(QMainWindow):
                                         "Deseja realmente excluir este diretório e todo o conteúdo dentro dele?")
         if resposta != QMessageBox.Yes:
             return
-        self.excluir_diretorio_recursivo(directory_id)
-        self.carregar_arvore()
+        self.exclude_recursive_directory(directory_id)
+        self.load_tree()
         self.table_items.setRowCount(0)
 
-    def excluir_diretorio_recursivo(self, directory_id):
+    def exclude_recursive_directory(self, directory_id):
         try:
             with obter_conexao() as conn:
                 cursor = conn.cursor()
                 cursor.execute("SELECT id FROM directories WHERE parent_id = ?", (directory_id,))
                 subdirs = cursor.fetchall()
                 for sd in subdirs:
-                    self.excluir_diretorio_recursivo(sd[0])
+                    self.exclude_recursive_directory(sd[0])
                 cursor.execute("DELETE FROM items WHERE directory_id = ?", (directory_id,))
                 cursor.execute("DELETE FROM directories WHERE id = ?", (directory_id,))
                 conn.commit()
         except Exception as e:
             QMessageBox.critical(self, "Erro", f"Erro ao excluir diretório: {e}")
 
-    def definir_cor(self, item):
+    def define_collor(self, item):
         color = QColorDialog.getColor()
         if color.isValid():
             item.setBackground(0, color)
@@ -657,21 +657,21 @@ class MainWindow(QMainWindow):
             dir_id = item.data(0, Qt.UserRole)
             self.tree_colors[str(dir_id)] = color.name()
 
-    def remover_cor(self, item):
+    def remove_collor(self, item):
         dir_id = item.data(0, Qt.UserRole)
         if hasattr(self, "tree_colors") and str(dir_id) in self.tree_colors:
             del self.tree_colors[str(dir_id)]
         item.setBackground(0, QColor())
 
-    def visualizar_itens(self):
+    def show_items(self):
         directory_id = self.get_selected_directory_id()
         if not directory_id:
             QMessageBox.warning(self, "Atenção", "Selecione um diretório.")
             return
-        self.carregar_itens_recursivo(directory_id)
+        self.load_recursive_items(directory_id)
 
     # ------------------------- Métodos de Itens -------------------------
-    def carregar_itens_do_diretorio(self, directory_id):
+    def load_items_from_directories(self, directory_id):
         try:
             with obter_conexao() as conn:
                 cursor = conn.cursor()
@@ -700,7 +700,7 @@ class MainWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Erro", f"Erro ao carregar itens: {e}")
 
-    def carregar_itens_recursivo(self, directory_id):
+    def load_recursive_items(self, directory_id):
         query = """
         WITH RECURSIVE subdirs(id) AS (
             SELECT id FROM directories WHERE id = ?
@@ -738,7 +738,7 @@ class MainWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Erro", f"Erro ao carregar itens recursivamente: {e}")
 
-    def adicionar_item(self):
+    def add_item(self):
         directory_id = self.get_selected_directory_id()
         if not directory_id:
             QMessageBox.warning(self, "Atenção", "Selecione um diretório para adicionar item.")
@@ -757,7 +757,7 @@ class MainWindow(QMainWindow):
                     self.undo_stack.pop(0)
             except Exception as e:
                 print("Erro ao registrar operação de inserção para undo:", e)
-            self.carregar_itens_do_diretorio(directory_id)
+            self.load_items_from_directories(directory_id)
             self.table_items.scrollToBottom()
 
     def get_selected_item_id(self):
@@ -769,7 +769,7 @@ class MainWindow(QMainWindow):
             return item_id_item.text()
         return None
 
-    def editar_item(self):
+    def edit_item(self):
         item_id = self.get_selected_item_id()
         if not item_id:
             QMessageBox.warning(self, "Atenção", "Selecione um item para editar.")
@@ -777,9 +777,9 @@ class MainWindow(QMainWindow):
         directory_id = self.get_selected_directory_id()
         dlg = ItemDialog(self, item_id=int(item_id))
         if dlg.exec_() == QDialog.Accepted:
-            self.carregar_itens_do_diretorio(directory_id)
+            self.load_items_from_directories(directory_id)
 
-    def excluir_item(self):
+    def exclude_item(self):
         item_id = self.get_selected_item_id()
         if not item_id:
             QMessageBox.warning(self, "Atenção", "Selecione um item para excluir.")
@@ -814,11 +814,11 @@ class MainWindow(QMainWindow):
                 cursor = conn.cursor()
                 cursor.execute("DELETE FROM items WHERE id = ?", (item_id,))
                 conn.commit()
-            self.atualizar_tabela()
+            self.refresh_table()
         except Exception as e:
             QMessageBox.critical(self, "Erro", f"Erro ao excluir item: {e}")
 
-    def mover_item(self):
+    def move_item(self):
         item_id = self.get_selected_item_id()
         if not item_id:
             QMessageBox.warning(self, "Atenção", "Selecione um item para mover.")
@@ -837,11 +837,11 @@ class MainWindow(QMainWindow):
                              WHERE id = ?
                         """, (new_dir_id, item_id))
                         conn.commit()
-                    self.carregar_itens_do_diretorio(self.get_selected_directory_id())
+                    self.load_items_from_directories(self.get_selected_directory_id())
                 except Exception as e:
                     QMessageBox.critical(self, "Erro", f"Erro ao mover item: {e}")
 
-    def duplicar_item(self):
+    def clone_item(self):
         item_id = self.get_selected_item_id()
         if not item_id:
             QMessageBox.warning(self, "Atenção", "Selecione um item para duplicar.")
@@ -870,7 +870,7 @@ class MainWindow(QMainWindow):
                         self.undo_stack.pop(0)
             current_dir_id = self.get_selected_directory_id()
             if current_dir_id:
-                self.carregar_itens_do_diretorio(current_dir_id)
+                self.load_items_from_directories(current_dir_id)
         except Exception as e:
             QMessageBox.critical(self, "Erro", f"Erro ao duplicar item: {e}")
 
@@ -884,25 +884,25 @@ class MainWindow(QMainWindow):
         row = self.table_items.rowAt(pos.y())
         menu = QMenu(self)
         action_add = QAction("Adicionar Item", self)
-        action_add.triggered.connect(self.adicionar_item)
+        action_add.triggered.connect(self.add_item)
         menu.addAction(action_add)
         if row >= 0:
             action_edit = QAction("Editar Item", self)
-            action_edit.triggered.connect(self.editar_item)
+            action_edit.triggered.connect(self.edit_item)
             menu.addAction(action_edit)
             action_del = QAction("Excluir Item", self)
-            action_del.triggered.connect(self.excluir_item)
+            action_del.triggered.connect(self.exclude_item)
             menu.addAction(action_del)
             action_move = QAction("Mover Item", self)
-            action_move.triggered.connect(self.mover_item)
+            action_move.triggered.connect(self.move_item)
             menu.addAction(action_move)
             action_duplicate = QAction("Duplicar Item", self)
-            action_duplicate.triggered.connect(self.duplicar_item)
+            action_duplicate.triggered.connect(self.clone_item)
             menu.addAction(action_duplicate)
         menu.exec_(self.table_items.mapToGlobal(pos))
 
     # ------------------------- Pesquisa de Itens -------------------------
-    def pesquisar_itens(self):
+    def search_item(self):
         termo = self.search_line_edit.text().strip()
         if not termo:
             return
@@ -947,16 +947,16 @@ class MainWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Erro", f"Erro ao pesquisar itens: {e}")
 
-    def limpar_pesquisa(self):
+    def clean_search(self):
         self.search_line_edit.clear()
         directory_id = self.get_selected_directory_id()
         if directory_id:
-            self.carregar_itens_do_diretorio(directory_id)
+            self.load_items_from_directories(directory_id)
         else:
             self.table_items.setRowCount(0)
 
     # ------------------------- Funções de CSV e Backup -------------------------
-    def exportar_csv(self):
+    def export_csv(self):
         try:
             caminho, _ = QFileDialog.getSaveFileName(self, "Exportar Banco para CSV", "", "CSV Files (*.csv)")
             if not caminho:
@@ -984,7 +984,7 @@ class MainWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Erro", f"Erro ao exportar CSV: {e}")
 
-    def importar_csv(self):
+    def import_csv(self):
         try:
             caminho, _ = QFileDialog.getOpenFileName(self, "Selecionar CSV", "", "CSV Files (*.csv)")
             if not caminho:
@@ -1059,11 +1059,11 @@ class MainWindow(QMainWindow):
                         """, (title, responsible, quantity, description, image_path, new_dir))
                 conn.commit()
             QMessageBox.information(self, "CSV", "Importação concluída com sucesso.")
-            self.carregar_arvore()
+            self.load_tree()
         except Exception as e:
             QMessageBox.critical(self, "Erro", f"Erro ao importar CSV: {e}")
 
-    def backup_banco(self):
+    def backup_db(self):
         try:
             nome_zip = f"backup_banco_{os.path.splitext(os.path.basename(NOME_DB))[0]}.zip"
             with zipfile.ZipFile(nome_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
@@ -1072,7 +1072,7 @@ class MainWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Erro", f"Erro no backup do banco: {e}")
 
-    def backup_imagens(self):
+    def backup_images(self):
         try:
             nome_zip = f"backup_imagens_{os.path.basename(IMAGES_FOLDER)}.zip"
             with zipfile.ZipFile(nome_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
@@ -1100,7 +1100,7 @@ class MainWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Erro", f"Erro no backup das configs: {e}")
 
-    def importar_config(self):
+    def import_configs(self):
         try:
             caminho, _ = QFileDialog.getOpenFileName(self, "Selecionar Config", "", "JSON Files (*.json)")
             if not caminho:
@@ -1112,14 +1112,14 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Erro", f"Erro ao importar config: {e}")
 
     # ------------------------- Tema -------------------------
-    def trocar_tema(self):
+    def change_theme(self):
         if getattr(self, "tema_atual", "claro") == "claro":
             self.tema_atual = "escuro"
             self.apply_dark_theme()
         else:
             self.tema_atual = "claro"
             self.apply_light_theme()
-        self.salvar_config_tema()
+        self.save_theme_configs()
 
     def apply_dark_theme(self):
         palette = QPalette()
@@ -1161,7 +1161,7 @@ class MainWindow(QMainWindow):
         QtWidgets.QApplication.instance().setStyleSheet("")
         self.setStyleSheet("QMainWindow { border: 2px solid darkgray; }")
 
-    def salvar_config_tema(self):
+    def save_theme_configs(self):
         config_path = get_config_path()
         config = {}
         if os.path.exists(config_path):

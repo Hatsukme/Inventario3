@@ -67,7 +67,7 @@ class ItemDialog(QDialog):
         self.img_label.setAlignment(Qt.AlignCenter)
 
         btn_select_image = QPushButton("Selecionar Imagem")
-        btn_select_image.clicked.connect(self.selecionar_imagem)
+        btn_select_image.clicked.connect(self.select_image)
 
         img_layout = QHBoxLayout()
         img_layout.addWidget(self.img_label)
@@ -105,7 +105,7 @@ class ItemDialog(QDialog):
         layout.addLayout(btn_layout)
 
         btn_save = QPushButton("Salvar")
-        btn_save.clicked.connect(self.salvar_item)
+        btn_save.clicked.connect(self.save_item)
         btn_layout.addWidget(btn_save)
 
         btn_cancel = QPushButton("Cancelar")
@@ -116,9 +116,9 @@ class ItemDialog(QDialog):
         #Atalhos===========================
         #Salvar itens
         saveShortcut = QShortcut(QKeySequence("Ctrl+S"), self)
-        saveShortcut.activated.connect(self.salvar_item)
+        saveShortcut.activated.connect(self.save_item)
 
-    def selecionar_imagem(self):
+    def select_image(self):
         file_path, _ = QFileDialog.getOpenFileName(
             self, "Selecionar Imagem", "", "Imagens (*.png *.jpg *.jpeg *.bmp)"
         )
@@ -145,7 +145,7 @@ class ItemDialog(QDialog):
             Qt.KeepAspectRatio
         ))
 
-    def salvar_item(self):
+    def save_item(self):
         title = self.title_edit.text().strip()
         responsible = self.responsible_edit.text().strip()
         quantity = self.quantity_spin.value()
