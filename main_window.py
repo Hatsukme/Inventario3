@@ -210,12 +210,14 @@ class MainWindow(QMainWindow):
         dialog.exec_()
 
     def posicionar_ultimo_item(self):
+        self.table_items.clearSelection()
         row_count = self.table_items.rowCount()
         if row_count > 0:
             self.table_items.selectRow(row_count - 1)
             self.table_items.scrollToItem(self.table_items.item(row_count - 1, 0))
 
     def posicionar_primeiro_item(self):
+        self.table_items.clearSelection()
         if self.table_items.rowCount() > 0:
             self.table_items.selectRow(0)
             self.table_items.scrollToItem(self.table_items.item(0, 0))
