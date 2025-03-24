@@ -22,4 +22,3 @@ class atalhosDialog(QDialog):
         )
         label = QLabel(texto_atalhos)
         layout.addWidget(label)
-
