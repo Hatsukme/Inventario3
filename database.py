@@ -3,18 +3,21 @@ import sqlite3
 import sys
 
 # Diretório base: se empacotado, usa o diretório do executável; senão, o do script
-BASE_DIR = os.path.dirname(sys.executable) if getattr(sys, "frozen", False) else os.path.dirname(os.path.abspath(sys.argv[0]))
+BASE_DIR = os.path.dirname(sys.executable) if getattr(sys, "frozen", False) else os.path.dirname(
+    os.path.abspath(sys.argv[0]))
 
 # Caminho padrão: o banco de dados na mesma pasta do executável
 NOME_DB = os.path.join(BASE_DIR, "inventario.db")
 # Diretório padrão de imagens, relativo ao banco
 IMAGES_FOLDER = os.path.join(BASE_DIR, "imagens_originais")
 
+
 def set_database_path(path):
     """Define o caminho do banco e atualiza o diretório de imagens correspondente."""
     global NOME_DB, IMAGES_FOLDER
     NOME_DB = path
     IMAGES_FOLDER = os.path.join(os.path.dirname(path), "imagens_originais")
+
 
 def obter_conexao():
     """
@@ -36,6 +39,7 @@ def obter_conexao():
             sys.exit(1)
         else:
             raise
+
 
 def verificar_ou_criar_db():
     novo_db = not os.path.exists(NOME_DB)
@@ -74,6 +78,7 @@ def verificar_ou_criar_db():
         raise
     finally:
         conn.close()
+
 
 def criar_pasta_imagens():
     """Cria a pasta para armazenar as imagens, se ela não existir."""

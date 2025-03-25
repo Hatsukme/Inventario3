@@ -1,10 +1,11 @@
-import sys
 import ctypes
+import sys
 
-from PyQt5.QtWidgets import QApplication
 from PyQt5 import QtGui
+from PyQt5.QtWidgets import QApplication
 
 from main_window import MainWindow
+
 
 def main():
     # Cria a aplicação Qt

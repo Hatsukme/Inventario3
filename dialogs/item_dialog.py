@@ -1,14 +1,14 @@
 import os
 import shutil
 
+from PyQt5.QtCore import Qt, QThread, pyqtSignal
+from PyQt5.QtGui import QPixmap, QKeySequence
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QFormLayout, QLineEdit, QTextEdit, QLabel,
     QPushButton, QSpinBox, QFileDialog, QHBoxLayout, QMessageBox, QShortcut
 )
-from PyQt5.QtGui import QPixmap, QKeySequence
-from PyQt5.QtCore import Qt, QThread, pyqtSignal
-
 from database import obter_conexao, IMAGES_FOLDER
+
 
 class CopyImageThread(QThread):
     """
@@ -35,6 +35,7 @@ class ItemDialog(QDialog):
     """
     Diálogo para adicionar/editar um item de inventário.
     """
+
     def __init__(self, parent=None, item_id=None, directory_id=None):
         super().__init__(parent)
         self.copy_thread = None
@@ -67,7 +68,7 @@ class ItemDialog(QDialog):
         self.img_label.setAlignment(Qt.AlignCenter)
 
         btn_select_image = QPushButton("Selecionar Imagem")
-        btn_select_image.clicked.connect(self.select_image)
+        btn_select_image.clicked.connect(self.selecionar_imagem)
 
         img_layout = QHBoxLayout()
         img_layout.addWidget(self.img_label)
@@ -105,20 +106,19 @@ class ItemDialog(QDialog):
         layout.addLayout(btn_layout)
 
         btn_save = QPushButton("Salvar")
-        btn_save.clicked.connect(self.save_item)
+        btn_save.clicked.connect(self.salvar_item)
         btn_layout.addWidget(btn_save)
 
         btn_cancel = QPushButton("Cancelar")
         btn_cancel.clicked.connect(self.reject)
         btn_layout.addWidget(btn_cancel)
 
-
-        #Atalhos===========================
-        #Salvar itens
+        # Atalhos===========================
+        # Salvar itens
         saveShortcut = QShortcut(QKeySequence("Ctrl+S"), self)
-        saveShortcut.activated.connect(self.save_item)
+        saveShortcut.activated.connect(self.salvar_item)
 
-    def select_image(self):
+    def selecionar_imagem(self):
         file_path, _ = QFileDialog.getOpenFileName(
             self, "Selecionar Imagem", "", "Imagens (*.png *.jpg *.jpeg *.bmp)"
         )
@@ -145,7 +145,7 @@ class ItemDialog(QDialog):
             Qt.KeepAspectRatio
         ))
 
-    def save_item(self):
+    def salvar_item(self):
         title = self.title_edit.text().strip()
         responsible = self.responsible_edit.text().strip()
         quantity = self.quantity_spin.value()
@@ -177,4 +177,3 @@ class ItemDialog(QDialog):
             self.accept()
         except Exception as e:
             QMessageBox.critical(self, "Erro", f"Falha ao salvar item: {e}")
-

@@ -1,18 +1,21 @@
 import os
+
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QLabel, QTextEdit, QPushButton,
     QMessageBox
 )
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPixmap
+from database import obter_conexao
 
 from .image_enlarge_dialog import ImageEnlargeDialog
-from database import obter_conexao
+
 
 class ItemDetailDialog(QDialog):
     """
     Diálogo que exibe os detalhes de um item (título, responsável, quantidade, descrição, imagem).
     """
+
     def __init__(self, parent=None, item_id=None):
         super().__init__(parent)
         self.setWindowTitle("Detalhes do Item")
@@ -38,7 +41,7 @@ class ItemDetailDialog(QDialog):
         layout.addWidget(self.img_label)
 
         btn_enlarge = QPushButton("Ampliar Imagem")
-        btn_enlarge.clicked.connect(self.amplify_image)
+        btn_enlarge.clicked.connect(self.ampliar_imagem)
         layout.addWidget(btn_enlarge)
 
         self.image_path = None
@@ -72,7 +75,7 @@ class ItemDetailDialog(QDialog):
         except Exception as e:
             QMessageBox.critical(self, "Erro", f"Erro ao carregar detalhes do item: {e}")
 
-    def amplify_image(self):
+    def ampliar_imagem(self):
         if not self.image_path or not os.path.exists(self.image_path):
             QMessageBox.information(self, "Informação", "Não há imagem para ampliar.")
             return

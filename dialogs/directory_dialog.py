@@ -4,10 +4,12 @@ from PyQt5.QtWidgets import (
 )
 from database import obter_conexao
 
+
 class DirectoryDialog(QDialog):
     """
     Diálogo para adicionar/editar um diretório.
     """
+
     def __init__(self, parent=None, directory_id=None, parent_directory_id=None):
         super().__init__(parent)
         self.setWindowTitle("Diretório")
@@ -42,14 +44,14 @@ class DirectoryDialog(QDialog):
         btn_layout = QHBoxLayout()
         layout.addLayout(btn_layout)
         btn_ok = QPushButton("OK")
-        btn_ok.clicked.connect(self.save)
+        btn_ok.clicked.connect(self.salvar)
         btn_layout.addWidget(btn_ok)
 
         btn_cancel = QPushButton("Cancelar")
         btn_cancel.clicked.connect(self.reject)
         btn_layout.addWidget(btn_cancel)
 
-    def save(self):
+    def salvar(self):
         nome = self.name_edit.text().strip()
         if not nome:
             QMessageBox.warning(self, "Atenção", "Nome do diretório não pode ser vazio.")

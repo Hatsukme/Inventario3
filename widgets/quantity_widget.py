@@ -1,12 +1,14 @@
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QPushButton, QLabel, QMessageBox
 from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QPushButton, QLabel, QMessageBox
 from database import obter_conexao
+
 
 class QuantityWidget(QWidget):
     """
     Widget customizado que exibe a quantidade de um item
     e permite incrementá-la ou decrementá-la diretamente na tabela.
     """
+
     def __init__(self, item_id, quantity, parent=None):
         super().__init__(parent)
         self.item_id = item_id

@@ -1,15 +1,17 @@
 import os
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QScrollArea
+
 from PyQt5.QtCore import Qt, QEvent
 from PyQt5.QtGui import QPixmap
-
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QScrollArea
 from widgets.zoomable_label import ZoomableLabel
+
 
 class ImageEnlargeDialog(QDialog):
     """
     Diálogo que mostra a imagem em tamanho ampliado,
     permitindo zoom via roda do mouse (com Ctrl pressionado) e arrasto.
     """
+
     def __init__(self, parent=None, image_path=None):
         super().__init__(parent)
         self.setWindowTitle("Imagem Ampliada")
@@ -30,11 +32,11 @@ class ImageEnlargeDialog(QDialog):
         self.scroll_area.setWidget(self.label)
 
         if self.image_path and os.path.exists(self.image_path):
-            self.refresh_images()
+            self.atualizarImagem()
 
         self.scroll_area.viewport().installEventFilter(self)
 
-    def refresh_images(self):
+    def atualizarImagem(self):
         if self.image_path and os.path.exists(self.image_path):
             pixmap = QPixmap(self.image_path)
             new_width = max(1, int(pixmap.width() * self.scaleFactor))
@@ -55,6 +57,6 @@ class ImageEnlargeDialog(QDialog):
                 new_scale = min(max(new_scale, self.zoom_min), self.zoom_max)
                 if new_scale != self.scaleFactor:
                     self.scaleFactor = new_scale
-                    self.refresh_images()
+                    self.atualizarImagem()
                 return True
         return super().eventFilter(source, event)

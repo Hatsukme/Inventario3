@@ -1,14 +1,16 @@
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QTreeWidget, QTreeWidgetItem,
-    QPushButton, QMessageBox, QHBoxLayout
+    QPushButton, QMessageBox
 )
-from PyQt5.QtCore import Qt
 from database import obter_conexao
+
 
 class MoveItemDialog(QDialog):
     """
     Diálogo para mover um item entre diretórios.
     """
+
     def __init__(self, parent=None, current_directory_id=None):
         super().__init__(parent)
         self.setWindowTitle("Mover Item")

@@ -1,8 +1,8 @@
 # sobre_dialog.py
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QHBoxLayout
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel
 
 
-class dialog_about(QDialog):
+class sobreDialog(QDialog):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Sobre")

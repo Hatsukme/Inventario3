@@ -1,6 +1,6 @@
 # atalho.py
-from PyQt5.QtWidgets import QShortcut
 from PyQt5.QtGui import QKeySequence
+from PyQt5.QtWidgets import QShortcut
 
 
 def setup_shortcuts(main_window, item_dialog=None):
@@ -15,7 +15,7 @@ def setup_shortcuts(main_window, item_dialog=None):
       - F5: Atualizar diretório e tabela
       - Ctrl+Z: Desfazer até 5 alterações (inserção ou exclusão)
     """
-    # Atalho para adicionar item na main_window
+    # Atalho Ctrl+N para adicionar item
     shortcutAddItem = QShortcut(QKeySequence("Ctrl+N"), main_window)
     shortcutAddItem.activated.connect(main_window.add_item)
 
@@ -24,18 +24,18 @@ def setup_shortcuts(main_window, item_dialog=None):
         saveShortcut = QShortcut(QKeySequence("Ctrl+S"), item_dialog)
         saveShortcut.activated.connect(item_dialog.save_item)
 
-    # Novo atalho: Ctrl+L para posicionar no último item da tabela
+    # Atalho Ctrl+L para selecionar o último item
     shortcutLastItem = QShortcut(QKeySequence("Ctrl+L"), main_window)
-    shortcutLastItem.activated.connect(main_window.set_last_item)
+    shortcutLastItem.activated.connect(main_window.select_last_item)
 
-    # Novo atalho: Ctrl+H para posicionar no primeiro item da tabela
+    # Atalho Ctrl+H para selecionar o primeiro item
     shortcutFirstItem = QShortcut(QKeySequence("Ctrl+H"), main_window)
-    shortcutFirstItem.activated.connect(main_window.set_first_item)
+    shortcutFirstItem.activated.connect(main_window.select_first_item)
 
-    # Novo atalho: F5 para atualizar (mesma função do botão de atualizar)
-    shortcutUpdate = QShortcut(QKeySequence("F5"), main_window)
-    shortcutUpdate.activated.connect(main_window.refresh_directories_table)
+    # Atalho F5 para atualizar
+    shortcutRefresh = QShortcut(QKeySequence("F5"), main_window)
+    shortcutRefresh.activated.connect(main_window.refresh_tree_and_table)
 
-    # Novo atalho: Ctrl+Z para desfazer até 5 alterações (inserção ou exclusão)
+    # Atalho Ctrl+Z para desfazer
     shortcutUndo = QShortcut(QKeySequence("Ctrl+Z"), main_window)
     shortcutUndo.activated.connect(main_window.undo_last_action)

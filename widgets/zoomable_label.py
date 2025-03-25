@@ -1,11 +1,13 @@
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QLabel
-from PyQt5.QtCore import Qt, QEvent
+
 
 class ZoomableLabel(QLabel):
     """
     Label que permite zoom e "arrastar" a imagem dentro de um QScrollArea.
     É usada dentro do diálogo de imagem ampliada.
     """
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self._dragging = False

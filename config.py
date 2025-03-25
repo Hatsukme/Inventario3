@@ -1,5 +1,5 @@
 import os
-import json
+
 
 def get_config_path():
     """
